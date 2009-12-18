@@ -1,0 +1,126 @@
+h2. Installing Redmine on Open Solaris
+
+Author: Mark Wolfe
+
+h3. Introduction
+
+A friend of mine recently asked me to assist him in getting Radmine going on opensolaris, this apparently is no mean feat on the recent version. 
+
+This document explains how to setup a clean zone with a ruby runtime environment and all the dependencies required to run Radmine.
+
+h3. Background
+
+Having used Solaris for many years, and as I have an open solaris box myself I know there are potential issues with Ruby software on this platform. With this in mind I normally start by assessing whether the base requirements were available in the "distribution", or whether I am going to have to use third party software.
+
+To do this I created a zone and ran into a range of issues utilising the pre built ruby runtime(see links section). So for this reason I decided to take an alternate route and use an island environment to run the application. I chose Blastwave as i have used it in the past, and because it has a simple dependency management tool.
+
+h3. Process
+
+I have documented the steps I used to install Redmine, these have the following assumptions:
+* You already have a Postgres in another zone or on another server.
+* Your deploying to a zone.
+* You have a zfs volume mounted at /data with a sub volume called zones.
+
+# Create a zone to house our redmine, as I was bored and hate zone0002232 like names i called mine theghan. 
+
+http://www.the-ghan.com.au/
+
+# Create a zone using the following commands.
+<pre>
+# pfexec zfs create data/zones/theghan
+# pfexec chmod 700 /data/zones/theghan
+</pre>
+# Configure the zone.
+<pre>
+# pfexec zonecfg -z theghan
+create -b
+set zonepath=/data/zones/theghan
+set brand=ipkg
+set autoboot=true
+set ip-type=shared
+add net
+set address=192.168.X.X/24
+set physical=e1000g0
+end
+</pre>
+# Install the zone then boot it.
+<pre>
+pfexec zoneadm -z theghan install
+pfexec zoneadm -z theghan boot
+</pre>
+# Attach to the console of the zone and do the post install configuration.
+<pre>
+pfexec zlogin -C theghan
+</pre>
+# Shut the zone down and back it all up.
+<pre>
+# pfexec zoneadm -z theghan halt
+</pre>
+# Using zfs snapshot the zone.
+<pre>
+pfexec zfs snapshot -r data/zones/theghan@200912051352
+</pre>
+*NOTE:* The r switch does recursive snapshots as the zone is split into volumes using zfs.
+# In my case I simply copy the NSS and resolver configurations across.
+<pre>
+# pfexec cp /etc/resolv.conf /data/zones/theghan/root/etc/
+# pfexec cp /etc/nsswitch.conf /data/zones/theghan/root/etc/
+</pre>
+# Boot the zone.
+<pre>
+# pfexec zoneadm -z theghan boot
+</pre>
+# Login to the zone, this time using the normal method.
+<pre>
+# pfexec zlogin theghan
+</pre>
+# Install the Postgres as I like to query my database some times.
+<pre>
+pkg install SUNWpostgr-82-client SUNWpostgr-82-devel
+</pre>
+# Install wget and the "retro" package commands.
+<pre>
+# pkg install SUNWwget
+# pkg install SUNWpkgcmds
+</pre>
+# Download and install the base blastwave package manager.
+<pre>
+# pkgadd -d http://blastwave.network.com/csw/pkgutil_`/sbin/uname -p`.pkg
+</pre>
+
+wget http://rubyforge.org/frs/download.php/60718/rubygems-1.3.5.tgz
+gtar xvzf rubygems-1.3.5.tgz
+cd rubygems-1.3.5
+ruby setup.rb 
+
+svn export http://redmine.rubyforge.org/svn/branches/0.8-stable redmine-0.8
+
+!!TODO FIX THIS!!
+export PATH=$PATH:/usr/postgres/8.2/bin:/usr/ruby/1.8/bin:/var/ruby/1.8/gem_home/bin
+export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/postgres/8.2/lib:/usr/sfw/lib:/usr/ccs/lib
+
+gem install rake
+gem install postgres-pr
+
+!! NOTE THIS IS FOR version 0.8 of redmine. !!
+# gem install -v=2.1.2 rails
+# gem install pg -- --with-pgsql-dir=/usr/postgres/8.2
+
+# createdb redmine
+# psql redmine
+
+redmine=# CREATE ROLE redmine LOGIN ENCRYPTED PASSWORD 'XXXXXXXX' NOINHERIT VALID UNTIL 'infinity';
+CREATE DATABASE redmine WITH ENCODING='UTF8' OWNER=redmine;
+
+
+
+pkg install SUNWgnu-coreutils
+pkg install SUNWwget SUNWgtar
+
+
+pkg install SUNWlibm
+pkg install java-dev
+pkg install SUNWunzip
+pkg install SUNWcurl
+pkg install SUNWgnu-findutils
+pkg install SUNWpostgr-82-devel
