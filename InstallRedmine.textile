@@ -26,12 +26,12 @@ I have documented the steps I used to install Redmine, these have the following 
 http://www.the-ghan.com.au/
 
 # Create a zone using the following commands.
-<pre>
+<pre><code>
 # pfexec zfs create data/zones/theghan
 # pfexec chmod 700 /data/zones/theghan
-</pre>
+</code></pre>
 # Configure the zone.
-<pre>
+<pre><code>
 # pfexec zonecfg -z theghan
 create -b
 set zonepath=/data/zones/theghan
@@ -42,52 +42,53 @@ add net
 set address=192.168.X.X/24
 set physical=e1000g0
 end
-</pre>
+</code></pre>
 # Install the zone then boot it.
-<pre>
-pfexec zoneadm -z theghan install
-pfexec zoneadm -z theghan boot
-</pre>
+<pre><code>
+# pfexec zoneadm -z theghan install
+# pfexec zoneadm -z theghan boot
+</code></pre>
 # Attach to the console of the zone and do the post install configuration.
-<pre>
-pfexec zlogin -C theghan
-</pre>
+<pre><code>
+# pfexec zlogin -C theghan
+</code></pre>
 # Shut the zone down and back it all up.
-<pre>
+<pre><code>
 # pfexec zoneadm -z theghan halt
-</pre>
+</code></pre>
 # Using zfs snapshot the zone.
-<pre>
-pfexec zfs snapshot -r data/zones/theghan@200912051352
-</pre>
+<pre><code>
+# pfexec zfs snapshot -r data/zones/theghan@200912051352
+</code></pre>
 *NOTE:* The r switch does recursive snapshots as the zone is split into volumes using zfs.
 # In my case I simply copy the NSS and resolver configurations across.
-<pre>
+<pre><code>
 # pfexec cp /etc/resolv.conf /data/zones/theghan/root/etc/
 # pfexec cp /etc/nsswitch.conf /data/zones/theghan/root/etc/
-</pre>
+</code></pre>
 # Boot the zone.
-<pre>
+<pre><code>
 # pfexec zoneadm -z theghan boot
-</pre>
+</code></pre>
 # Login to the zone, this time using the normal method.
-<pre>
+<pre><code>
 # pfexec zlogin theghan
-</pre>
+</code></pre>
 # Install the Postgres as I like to query my database some times.
-<pre>
-pkg install SUNWpostgr-82-client SUNWpostgr-82-devel
-</pre>
+<pre><code>
+# pkg install SUNWpostgr-82-client SUNWpostgr-82-devel
+</code></pre>
 # Install wget and the "retro" package commands.
-<pre>
+<pre><code>
 # pkg install SUNWwget
 # pkg install SUNWpkgcmds
-</pre>
+</code></pre>
 # Download and install the base blastwave package manager.
-<pre>
+<pre><code>
 # pkgadd -d http://blastwave.network.com/csw/pkgutil_`/sbin/uname -p`.pkg
-</pre>
-
+</code></pre>
+h2. Notes
+<pre><code>
 wget http://rubyforge.org/frs/download.php/60718/rubygems-1.3.5.tgz
 gtar xvzf rubygems-1.3.5.tgz
 cd rubygems-1.3.5
@@ -112,8 +113,6 @@ gem install postgres-pr
 redmine=# CREATE ROLE redmine LOGIN ENCRYPTED PASSWORD 'XXXXXXXX' NOINHERIT VALID UNTIL 'infinity';
 CREATE DATABASE redmine WITH ENCODING='UTF8' OWNER=redmine;
 
-
-
 pkg install SUNWgnu-coreutils
 pkg install SUNWwget SUNWgtar
 
@@ -124,3 +123,4 @@ pkg install SUNWunzip
 pkg install SUNWcurl
 pkg install SUNWgnu-findutils
 pkg install SUNWpostgr-82-devel
+</code></pre>
