@@ -4,27 +4,24 @@ Author: Mark Wolfe
 
 h3. Introduction
 
-A friend of mine recently asked me to assist him in getting Radmine going on opensolaris, this apparently is no mean feat on the recent version. 
+A friend of mine recently asked me to assist in getting "Redmine":http://www.redmine.org/ going on "Opensolaris":http://www.opensolaris.com/, there is apparently an issue with an empty package which would normally provide internationalisation support to ruby. 
 
-This document explains how to setup a clean zone with a ruby runtime environment and all the dependencies required to run Radmine.
+This document explains how to setup a clean zone with a ruby runtime environment and all the dependencies required to run "Redmine":http://www.redmine.org/.
 
 h3. Background
 
-Having used Solaris for many years, and as I have an open solaris box myself I know there are potential issues with Ruby software on this platform. With this in mind I normally start by assessing whether the base requirements were available in the "distribution", or whether I am going to have to use third party software.
+Having used Solaris for many years, and as I have an open solaris box myself I know there are potential issues with Ruby software on this platform. With this in mind I normally start by assessing whether the base requirements were available in the "distribution", or whether I am going to have to use third party packages.
 
-To do this I created a zone and ran into a range of issues utilising the pre built ruby runtime(see links section). So for this reason I decided to take an alternate route and use an island environment to run the application. I chose Blastwave as i have used it in the past, and because it has a simple dependency management tool.
+To do this I created a zone and ran into a range of issues utilising the pre built ruby runtime(see links section). So I decided to take an alternate route and use an alternate set of packages to run the application. I chose "Blastwave":http://www.blastwave.org/ as i have used it in the past, and because it has good dependency management.
 
 h3. Process
 
-I have documented the steps I used to install Redmine, these have the following assumptions:
+I have compiled the steps I used to install Redmine with the following assumptions:
 * You already have a Postgres in another zone or on another server.
 * Your deploying to a zone.
 * You have a zfs volume mounted at /data with a sub volume called zones.
 
-# Create a zone to house our redmine, as I was bored and hate zone0002232 like names i called mine theghan. 
-
-http://www.the-ghan.com.au/
-
+# Create a zone to house our redmine, as I was bored and hate names like zone0002232, I called mine "theghan":http://www.the-ghan.com.au/ following the rails theme. 
 # Create a zone using the following commands.
 <pre><code>
 $ pfexec zfs create data/zones/theghan
