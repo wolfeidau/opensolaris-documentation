@@ -76,51 +76,84 @@ $ pfexec zlogin theghan
 </code></pre>
 # Install the Postgres as I like to query my database some times.
 <pre><code>
-$ pkg install SUNWpostgr-82-client SUNWpostgr-82-devel
+root@theghan:~# pkg install SUNWpostgr-82-client SUNWpostgr-82-devel
 </code></pre>
 # Install wget and the "retro" package commands.
 <pre><code>
-$ pkg install SUNWwget
-$ pkg install SUNWpkgcmds
+root@theghan:~# pkg install SUNWwget SUNWpkgcmds SUNWgtar
 </code></pre>
 # Download and install the base blastwave package manager.
 <pre><code>
-$ pkgadd -d http://blastwave.network.com/csw/pkgutil_`/sbin/uname -p`.pkg
+root@theghan:~# pkgadd -d http://blastwave.network.com/csw/pkgutil_`/sbin/uname -p`.pkg
 </code></pre>
-h2. Notes
+# Modify the path for root by updating the PATH variable in the /root/.profile.
 <pre><code>
-wget http://rubyforge.org/frs/download.php/60718/rubygems-1.3.5.tgz
-gtar xvzf rubygems-1.3.5.tgz
-cd rubygems-1.3.5
-ruby setup.rb 
+export PATH=/usr/gnu/bin:/usr/bin:/usr/X11/bin:/usr/sbin:/sbin:/opt/csw/bin
+</code></pre>
+*NOTE:* You will need to relog for this to take effect.
+# Install ruby from blastwave.
+<pre><code>
+root@theghan:~# pkgutil -i ruby
+</code></pre>
+# Download ruby gems.
+<pre><code>
+root@theghan:~# wget http://rubyforge.org/frs/download.php/60718/rubygems-1.3.5.tgz
+</code></pre>
+# Extract the archive using GNU tar.
+<pre><code>
+root@theghan:~# gtar xvzf rubygems-1.3.5.tgz
+</code></pre>
+# cd into the folder and run the setup script.
+<pre><code>
+root@theghan:~# cd rubygems-1.3.5
+root@theghan:~# ruby setup.rb
+</code></pre>
+# Install rake, the ruby based build tool. 
+<pre><code>
+root@theghan:~# gem install rake
+</code></pre>
+# Install the pure ruby PostgreSQL driver
+<pre><code>
+root@theghan:~# gem install postgres-pr
+</code></pre>
+# Install the rails, passing the version required for redmine 0.8
+<pre><code>
+root@theghan:~# gem install -v=2.1.2 rails
+</code></pre>
+# Install SVN so we can grab a copy of redmine.
+<pre><code>
+root@theghan:~# pkgutil -i subversion
+</code></pre>
+# Install redmine, in this case i am putting it in /opt and cd into the application directory.
+<pre><code>
+root@theghan:~# svn export http://redmine.rubyforge.org/svn/branches/0.8-stable redmine-0.8
+root@theghan:~# cd redmine-0.8
+</code></pre>
+# Configure your database, in my case I have added the following to the config/database.yml. This has setup a datasource with the production tag.
+<pre><code>
+	production:
+	  adapter: postgresql
+	  database: redmine
+	  host: 192.168.X.XXX
+	  username: redmine
+	  password: XXXXXXXX
+	  encoding: utf8
+</code></pre>
+# Migrate the database schema into the production database and add the the default data.
+<pre><code>
+root@theghan:~# RAILS_ENV=production rake db:migrate
+root@theghan:~# RAILS_ENV=production rake redmine:load_default_data
+</code></pre>
+# Run the application using the inbuilt redbrick web server.
+<pre><code>
+root@theghan:~# ruby script/server webrick -e production
+</code></pre>
 
-svn export http://redmine.rubyforge.org/svn/branches/0.8-stable redmine-0.8
+h2. Database Set Up
 
-!!TODO FIX THIS!!
-export PATH=$PATH:/usr/postgres/8.2/bin:/usr/ruby/1.8/bin:/var/ruby/1.8/gem_home/bin
-export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/postgres/8.2/lib:/usr/sfw/lib:/usr/ccs/lib
-
-gem install rake
-gem install postgres-pr
-
-!! NOTE THIS IS FOR version 0.8 of redmine. !!
-# gem install -v=2.1.2 rails
-# gem install pg -- --with-pgsql-dir=/usr/postgres/8.2
-
-# createdb redmine
-# psql redmine
-
-redmine=# CREATE ROLE redmine LOGIN ENCRYPTED PASSWORD 'XXXXXXXX' NOINHERIT VALID UNTIL 'infinity';
+In my case I have a PostgreSQL server installed in another zone, hence the omittion of any instructions about creating a database. For people not familiar with this server I have just put the commands below.
+ 
+<pre><code>
+CREATE ROLE redmine LOGIN ENCRYPTED PASSWORD 'XXXXXXXX' NOINHERIT VALID UNTIL 'infinity';
 CREATE DATABASE redmine WITH ENCODING='UTF8' OWNER=redmine;
-
-pkg install SUNWgnu-coreutils
-pkg install SUNWwget SUNWgtar
-
-
-pkg install SUNWlibm
-pkg install java-dev
-pkg install SUNWunzip
-pkg install SUNWcurl
-pkg install SUNWgnu-findutils
-pkg install SUNWpostgr-82-devel
 </code></pre>
